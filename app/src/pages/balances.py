@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
-import snowflake.connector
 from ..utils.tokens.tkn_bal_txn_display import tkn_bal_txn_display
-from ..utils.tokens.tkn_bal_txn_fetch import fetch_data
-from ..config.sf import SNOWFLAKE_HOST, SNOWFLAKE_PASSWORD, SNOWFLAKE_ROLE, SNOWFLAKE_USERNAME, SNOWFLAKE_WAREHOUSE
+
 
 def app():
     """
@@ -18,23 +16,6 @@ def app():
 
     # If query parameters were generated...
     if query_params:
-        
-        @st.experimental_singleton
-        def init_connection():
-            print()
-            print('Initializing DB connection...')
-            print()
-            return snowflake.connector.connect(
-                account=SNOWFLAKE_HOST,
-                user=SNOWFLAKE_USERNAME,
-                password=SNOWFLAKE_PASSWORD,
-                warehouse=SNOWFLAKE_WAREHOUSE,
-                role=SNOWFLAKE_ROLE,
-                port=443,
-                protocol='https'
-            )
-
-        engine = init_connection()
 
         holders_query = f"""
             select count(distinct address)
@@ -44,7 +25,7 @@ def app():
 
         @st.experimental_memo(ttl=600)
         def fetch_holders(holders_query):
-            return engine.cursor().execute(holders_query).fetchone()[0]
+            return st.session_state.cur.execute(holders_query).fetchone()[0]
 
         # Display result KPIs
         with st.expander("Result KPIs", expanded=True):
@@ -62,7 +43,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_top_holders(top_50_query):
-            return engine.cursor().execute(top_50_query).fetchall()
+            return st.session_state.cur.execute(top_50_query).fetchall()
 
         # Display result table visualizations
         with st.expander("Result Tables", expanded=True):

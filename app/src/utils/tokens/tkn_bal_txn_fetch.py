@@ -2,10 +2,6 @@ import pandas as pd
 import streamlit as st
 import pandas as pd
 from datetime import date
-import snowflake.connector
-# from ...config.sf import engine
-from ...config.sf import SNOWFLAKE_ACCOUNT, SNOWFLAKE_HOST, SNOWFLAKE_PASSWORD, SNOWFLAKE_ROLE, SNOWFLAKE_USERNAME, SNOWFLAKE_WAREHOUSE
-
 
 
 @st.experimental_memo(ttl=600)
@@ -44,22 +40,6 @@ def fetch_data(topic: str, token: str, params: tuple) -> pd.DataFrame:
     elif type(params[0]) == int:
         cond = f"where block >= {params[0]} and block <= {params[1]}"
 
-    @st.experimental_singleton
-    def init_connection():
-        print()
-        print('Initializing DB connection...')
-        print()
-        return snowflake.connector.connect(
-            account=SNOWFLAKE_HOST,
-            user=SNOWFLAKE_USERNAME,
-            password=SNOWFLAKE_PASSWORD,
-            warehouse=SNOWFLAKE_WAREHOUSE,
-            role=SNOWFLAKE_ROLE,
-            port=443,
-            protocol='https'
-        )
-
-    engine = init_connection()
     # Construct final query and fetch result
     try:
         print()
@@ -71,7 +51,6 @@ def fetch_data(topic: str, token: str, params: tuple) -> pd.DataFrame:
         print(f"""Fetching data failed. Error: {e}""")
         print('Reinitializing DB connection...')
         print()
-        engine = init_connection()
-        result = pd.read_sql(f"select {table} {cond}", engine)
+        result = pd.read_sql(f"select {table} {cond}", st.session_state.cur)
 
     return result

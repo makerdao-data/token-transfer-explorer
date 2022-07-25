@@ -1,9 +1,6 @@
 import streamlit as st
-import pandas as pd
-import snowflake.connector
-from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
-from ...config.sf import SNOWFLAKE_HOST, SNOWFLAKE_PASSWORD, SNOWFLAKE_ROLE, SNOWFLAKE_USERNAME, SNOWFLAKE_WAREHOUSE
+
 
 def tkn_bal_txn_display(topic: str) -> tuple: 
     """
@@ -19,23 +16,6 @@ def tkn_bal_txn_display(topic: str) -> tuple:
         ('', 'MKR', 'DAI'),
          format_func=lambda x: 'Select an option' if x == '' else x
     )
-
-    @st.experimental_singleton
-    def init_connection():
-        print()
-        print('Initializing DB connection...')
-        print()
-        return snowflake.connector.connect(
-            account=SNOWFLAKE_HOST,
-            user=SNOWFLAKE_USERNAME,
-            password=SNOWFLAKE_PASSWORD,
-            warehouse=SNOWFLAKE_WAREHOUSE,
-            role=SNOWFLAKE_ROLE,
-            port=443,
-            protocol='https'
-        )
-
-    engine = init_connection()
 
     # Once token is selected...
     if token:
@@ -61,7 +41,7 @@ def tkn_bal_txn_display(topic: str) -> tuple:
                     """
                     @st.experimental_memo(ttl=600)
                     def fetch_min_max_date(min_max_date_query):
-                        return engine.cursor().execute(min_max_date_query).fetchone()
+                        return st.session_state.cur.execute(min_max_date_query).fetchone()
 
                     values_range = fetch_min_max_date(min_max_date_query)
                     min_value = values_range[1] - timedelta(days=30)
@@ -75,7 +55,7 @@ def tkn_bal_txn_display(topic: str) -> tuple:
                     """
                     @st.experimental_memo(ttl=600)
                     def fetch_min_max_date(min_max_date_query):
-                        return engine.cursor().execute(min_max_date_query).fetchone()
+                        return st.session_state.cur.execute(min_max_date_query).fetchone()
 
                     values_range = fetch_min_max_date(min_max_date_query)
                     min_value = values_range[1] - timedelta(days=30)
@@ -107,7 +87,7 @@ def tkn_bal_txn_display(topic: str) -> tuple:
                 """
                 @st.experimental_memo(ttl=600)
                 def fetch_max_block(max_block_query):
-                    return engine.cursor().execute(max_block_query).fetchone()
+                    return st.session_state.cur.execute(max_block_query).fetchone()
                 
                 values_range = fetch_max_block(min_max_block_query)
 

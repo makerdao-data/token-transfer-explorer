@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
-import snowflake.connector
 from ..utils.tokens.tkn_bal_txn_display import tkn_bal_txn_display
-from ..config.sf import SNOWFLAKE_HOST, SNOWFLAKE_PASSWORD, SNOWFLAKE_ROLE, SNOWFLAKE_USERNAME, SNOWFLAKE_WAREHOUSE
 
 
 def app():
@@ -29,23 +27,6 @@ def app():
             cond = 'timestamp'
             c0 = query_params[2][0].__str__()[:10] + ' 00:00:00'
             c1 = query_params[2][1].__str__()[:10] + ' 23:59:59'
-
-        @st.experimental_singleton
-        def init_connection():
-            print()
-            print('Initializing DB connection...')
-            print()
-            return snowflake.connector.connect(
-                account=SNOWFLAKE_HOST,
-                user=SNOWFLAKE_USERNAME,
-                password=SNOWFLAKE_PASSWORD,
-                warehouse=SNOWFLAKE_WAREHOUSE,
-                role=SNOWFLAKE_ROLE,
-                port=443,
-                protocol='https'
-            )
-
-        engine = init_connection()
         
         ttq_query = f"""
             SELECT count(*)
@@ -55,7 +36,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_ttq(ttq_query):
-            return engine.cursor().execute(ttq_query).fetchone()[0]
+            return st.session_state.cur.execute(ttq_query).fetchone()[0]
 
         adtq_query = f"""
             select avg(sum_transfers)
@@ -67,7 +48,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_adtq(adtq_query):
-            return engine.cursor().execute(adtq_query).fetchone()[0]
+            return st.session_state.cur.execute(adtq_query).fetchone()[0]
 
         ttv_query = f"""
             SELECT sum(amount)
@@ -77,7 +58,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_ttv(ttv_query):
-            return engine.cursor().execute(ttv_query).fetchone()[0]
+            return st.session_state.cur.execute(ttv_query).fetchone()[0]
 
         adtv_query = f"""
             select avg(sum_amount)
@@ -89,7 +70,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_adtv(adtv_query):
-            return engine.cursor().execute(adtv_query).fetchone()[0]
+            return st.session_state.cur.execute(adtv_query).fetchone()[0]
 
         tv_query = f"""
             select timestamp, amount
@@ -100,7 +81,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_tv(tv_query):
-            return engine.cursor().execute(tv_query).fetchall()
+            return st.session_state.cur.execute(tv_query).fetchall()
 
         tq_query = f"""
             select timestamp, count(*)
@@ -112,7 +93,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_tq(tq_query):
-            return engine.cursor().execute(tq_query).fetchall()
+            return st.session_state.cur.execute(tq_query).fetchall()
 
         top_10_query = f"""
             select timestamp, block, tx_hash, sender, receiver, amount
@@ -124,7 +105,7 @@ def app():
         """
         @st.experimental_memo(ttl=600)
         def fetch_top_10(top_10_query):
-            return engine.cursor().execute(top_10_query).fetchall()
+            return st.session_state.cur.execute(top_10_query).fetchall()
 
         # Display result KPIs
         with st.expander("Result KPIs", expanded=True):
