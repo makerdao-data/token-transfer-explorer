@@ -1,3 +1,4 @@
+from src.config.conn_init import load_connection
 import streamlit as st
 import pandas as pd
 from ..utils.tokens.tkn_bal_txn_display import tkn_bal_txn_display
@@ -10,6 +11,11 @@ def app():
 
     # Display page title
     st.title("Token Transfer Explorer")
+
+    if 'cur' not in st.session_state:
+        st.session_state.cur = load_connection()
+    if st.session_state.cur.is_closed():
+        st.session_state.cur = load_connection()
     
     # Prompt inputs and generate query parameters
     query_params = tkn_bal_txn_display('txs')

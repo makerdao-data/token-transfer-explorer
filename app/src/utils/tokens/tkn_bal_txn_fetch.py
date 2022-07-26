@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import pandas as pd
 from datetime import date
+from src.config.conn_init import load_connection
 
 
 @st.experimental_memo(ttl=600)
@@ -16,6 +17,11 @@ def fetch_data(topic: str, token: str, params: tuple) -> pd.DataFrame:
         
         params (tuple): Query parameters. Date (datetime.date) or block (int).
     """
+
+    if 'cur' not in st.session_state:
+        st.session_state.cur = load_connection()
+    if st.session_state.cur.is_closed():
+        st.session_state.cur = load_connection()
 
     # Input assertions
     assert topic in ('txs', 'bal')

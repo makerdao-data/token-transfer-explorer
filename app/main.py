@@ -5,6 +5,7 @@ from src.pages import landing
 from src.pages import transfers
 from src.pages import balances
 
+
 # Set wide visual feed
 st.set_page_config(page_title="MakerDAO Token Transfer Explorer", layout="wide") 
 st.title("MakerDAO Token Transfer Explorer")

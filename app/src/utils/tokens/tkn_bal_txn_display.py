@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime, timedelta
+from src.config.conn_init import load_connection
 
 
 def tkn_bal_txn_display(topic: str) -> tuple: 
@@ -9,6 +10,11 @@ def tkn_bal_txn_display(topic: str) -> tuple:
     Params:
         topic (str): Topic of query. Currently 'bal' or 'txs.'
     """
+
+    if 'cur' not in st.session_state:
+        st.session_state.cur = load_connection()
+    if st.session_state.cur.is_closed():
+        st.session_state.cur = load_connection()
 
     # Select token
     token = st.selectbox(
